@@ -5,7 +5,7 @@ An implementation of the Rubik's Cube algebra as described in
 
 If you take the Rubik's Cube apart (without peeling off any stickers)
 
-![disassembled-cube][https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Disassembled-rubix-1.jpg/320px-Disassembled-rubix-1.jpg]
+![disassembled-cube](https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Disassembled-rubix-1.jpg/320px-Disassembled-rubix-1.jpg)
 
 and put it back together anyway that the pieces will fit,
 you get a permutation of the stickers that may or may not be solveable anymore.
