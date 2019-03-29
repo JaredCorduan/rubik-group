@@ -1,0 +1,46 @@
+name:                rubik-group
+version:             0.1.0.0
+github:              "jaredcorduan/rubik-group"
+license:             BSD3
+author:              "Jared Corduan"
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            Web
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on GitHub at <https://github.com/jaredcorduan/rubik-group#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+
+library:
+  source-dirs: src
+  dependencies:
+  - containers
+  - fixed-vector
+  - groups
+  - modular-arithmetic
+  - monoid-extras
+  - tasty-quickcheck
+
+tests:
+  rubik-group-test:
+    main:                Tests.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - groups
+    - tasty
+    - tasty-hunit
+    - tasty-quickcheck
+    - rubik-group
