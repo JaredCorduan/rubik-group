@@ -270,9 +270,6 @@ instance KnownNat n => Monoid (Cyclic n) where
 instance KnownNat n => Group (Cyclic n) where
   invert (Cyclic x) = Cyclic $ negate x
 
-toCyclic :: Arity n => Int -> Cyclic n
-toCyclic = Cyclic . toMod
-
 data Trnsp = Trnsp Natural Natural deriving (Show, Eq)
 
 newtype Perm n = Perm (VecList n Int)
@@ -327,8 +324,7 @@ instance Arity n => Eq (Semi (VecList n (Cyclic m)) (Perm n)) where
   x == y = unSemi x == unSemi y
 
 instance Arity n => Action (Perm n) (VecList n (Cyclic m)) where
-  act p v = DVF.map (v !) p'
-    where (Perm p') = p
+  act (Perm p) v = DVF.map (v !) p
 
 type Corners = Semi (VecList 8 (Cyclic 3)) (Perm 8)
 type Edges = Semi (VecList 12 (Cyclic 2)) (Perm 12)
@@ -350,8 +346,8 @@ getEP (IRubik _ e) = snd . unSemi $ e
 mkIRubik :: [Int] -> [Trnsp] -> [Int] -> [Trnsp] -> IRubik
 mkIRubik co cp eo ep =
   IRubik
-    (tag (DVF.fromList (map toCyclic co)) (mkPerm cp))
-    (tag (DVF.fromList (map toCyclic eo)) (mkPerm ep))
+    (tag (DVF.fromList (map (Cyclic . toMod) co)) (mkPerm cp))
+    (tag (DVF.fromList (map (Cyclic . toMod) eo)) (mkPerm ep))
 
 instance Semigroup IRubik where
   (IRubik c1 e1) <> (IRubik c2 e2) = IRubik (c1 <> c2) (e1 <> e2)
