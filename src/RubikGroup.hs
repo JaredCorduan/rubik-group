@@ -242,7 +242,7 @@ module RubikGroup
 
 import           Data.Group                    (Group, invert)
 import qualified Data.Map                      as Map
-import           Data.Modular                  (Mod, toMod)
+import           Data.Modular                  (Mod, toMod, unMod)
 import           Data.Monoid.Action            (Action, act)
 import           Data.Monoid.SemiDirectProduct (Semi, tag, unSemi)
 import           Data.Proxy                    (Proxy (..))
@@ -251,10 +251,8 @@ import           Data.Vector.Fixed             (Arity, VecList, generate,
                                                 generateM, imap, (!))
 import qualified Data.Vector.Fixed             as DVF
 import           GHC.TypeLits                  (KnownNat, natVal)
-import           Numeric.Natural               (Natural)
 import           Test.Tasty.QuickCheck         (Arbitrary, arbitrary,
-                                                arbitraryBoundedEnum,
-                                                arbitrarySizedNatural)
+                                                arbitraryBoundedEnum)
 
 newtype Cyclic n = Cyclic (Mod Int n) deriving (Eq)
 
@@ -270,9 +268,9 @@ instance KnownNat n => Monoid (Cyclic n) where
 instance KnownNat n => Group (Cyclic n) where
   invert (Cyclic x) = Cyclic $ negate x
 
-data Trnsp = Trnsp Natural Natural deriving (Show, Eq)
+data Trnsp n = Trnsp (Mod Int n) (Mod Int n) deriving (Show, Eq)
 
-newtype Perm n = Perm (VecList n Int)
+newtype Perm n = Perm (VecList n (Mod Int n))
 
 instance Arity n => Eq (Perm n) where
   (Perm p) == (Perm q) = p == q
@@ -281,30 +279,26 @@ instance Arity n => Show (Perm n) where
   show (Perm p) = show p
 
 instance Arity n => Semigroup (Perm n) where
-  (Perm p) <> (Perm q) = Perm $ DVF.map (q !) p
+  (Perm p) <> (Perm q) = Perm $ DVF.map (q !) (DVF.map unMod p)
 
-evalTrnsp :: Int -> Int -> Trnsp -> Int
-evalTrnsp m z (Trnsp x y)
-  | z == fromIntegral x `mod` m  = fromIntegral y `mod` m
-  | z == fromIntegral y `mod` m  = fromIntegral x `mod` m
-  | otherwise = z
-
-mkPerm :: forall n. Arity n => [Trnsp] -> Perm n
-mkPerm sws = Perm $ DVF.map (\c -> foldl (evalTrnsp m) c sws) v
+mkPerm :: forall n. Arity n => [Trnsp n] -> Perm n
+mkPerm sws = Perm $ DVF.map (\z -> foldl evalTrnsp z sws) (generate toMod)
   where
-    m = fromIntegral $ natVal (Proxy @n)
-    v = generate id
+    evalTrnsp z (Trnsp x y)
+      | z == x = y
+      | z == y = x
+      | otherwise = z
 
 instance Arity n => Monoid (Perm n) where
   mempty = mkPerm []
 
-permToMap :: Arity n => Perm n -> Map.Map Int Int
+permToMap :: forall n. Arity n => Perm n -> Map.Map (Mod Int n) Int
 permToMap (Perm p) = Map.fromList $ DVF.toList $ imap (\i x -> (x, i)) p
 
 instance Arity n => Group (Perm n) where
-  invert p = Perm $ DVF.map get (generate id)
+  invert p = Perm $ DVF.map get (generate toMod)
     where
-      get x = Map.findWithDefault 0 x (permToMap p)
+      get x = toMod $ Map.findWithDefault 0 x (permToMap p)
 
 instance (Arity n, KnownNat m) => Group (VecList n (Cyclic m)) where
   invert v = DVF.fromList $ fmap invert (DVF.toList v)
@@ -324,7 +318,7 @@ instance Arity n => Eq (Semi (VecList n (Cyclic m)) (Perm n)) where
   x == y = unSemi x == unSemi y
 
 instance Arity n => Action (Perm n) (VecList n (Cyclic m)) where
-  act (Perm p) v = DVF.map (v !) p
+  act (Perm p) v = DVF.map ((v !) . unMod) p
 
 type Corners = Semi (VecList 8 (Cyclic 3)) (Perm 8)
 type Edges = Semi (VecList 12 (Cyclic 2)) (Perm 12)
@@ -343,7 +337,7 @@ getEO (IRubik _ e) = fst . unSemi $ e
 getEP :: IRubik -> Perm 12
 getEP (IRubik _ e) = snd . unSemi $ e
 
-mkIRubik :: [Int] -> [Trnsp] -> [Int] -> [Trnsp] -> IRubik
+mkIRubik :: [Int] -> [Trnsp 8] -> [Int] -> [Trnsp 12] -> IRubik
 mkIRubik co cp eo ep =
   IRubik
     (tag (DVF.fromList (map (Cyclic . toMod) co)) (mkPerm cp))
@@ -358,12 +352,12 @@ instance Monoid IRubik where
 instance Group IRubik where
   invert (IRubik c1 e1) = IRubik (invert c1) (invert e1)
 
-(~~>) :: Natural -> Natural -> [Trnsp]
-x ~~> y = [Trnsp x y]
+(~~>) :: KnownNat n => Int -> Int -> [Trnsp n]
+x ~~> y = [Trnsp (toMod x) (toMod y)]
 
-(~>) :: [Trnsp] -> Natural -> [Trnsp]
+(~>) :: KnownNat n => [Trnsp n] -> Int -> [Trnsp n]
 [] ~> _ = []
-sws ~> z = sws ++ [Trnsp x z]
+sws ~> z = sws ++ [Trnsp x (toMod z)]
   where (Trnsp x _) = last sws
 
 f :: IRubik
@@ -450,18 +444,18 @@ sumFlips (IRubik _ e) = foldl (<>) mempty eo
   where (eo, _) = unSemi e
 
 
-orbit :: Arity n => Perm n -> Int -> Set.Set Int
+orbit :: forall n. Arity n => Perm n -> Mod Int n -> Set.Set (Mod Int n)
 orbit p x = orbit' p x (Set.singleton x)
   where
     orbit' (Perm q) i current =
       if Set.member j current
         then current
         else orbit' (Perm q) j (Set.insert j current)
-      where j = q ! i
+      where j = q ! unMod i
 
 -- this is far from optimal, but for n=12 it's nbd
-orbits :: forall n. Arity n => Perm n -> Set.Set (Set.Set Int)
-orbits p = foldl (\s i -> Set.insert (orbit p i) s) Set.empty [0..(m-1)]
+orbits :: forall n. Arity n => Perm n -> Set.Set (Set.Set (Mod Int n))
+orbits p = foldl (\s i -> Set.insert (orbit p i) s) Set.empty $ map toMod [0..(m-1)]
   where m = fromIntegral $ natVal (Proxy @n)
 
 isEvenPerm :: Arity n => Perm n -> Bool
@@ -469,11 +463,11 @@ isEvenPerm p = foldl (\a o -> a + Set.size o - 1) 0 (orbits p) `mod` 2 == 0
 
 -- Arbitrary Instances --
 
-instance Arbitrary Trnsp where
+instance KnownNat n => Arbitrary (Trnsp n) where
   arbitrary = do
-    x <- arbitrarySizedNatural
-    y <- arbitrarySizedNatural
-    return $ Trnsp x y
+    x <- arbitrary
+    y <- arbitrary
+    return $ Trnsp (toMod x) (toMod y)
 
 instance Arity n => Arbitrary (Perm n) where
   arbitrary = mkPerm <$> arbitrary

@@ -28,7 +28,7 @@ conservationOfFlips g = sumFlips (illegal g) == mempty
 equalParity :: Rubik -> Bool
 equalParity g = isEvenPerm (getCP . illegal $ g) == isEvenPerm (getEP . illegal $ g)
 
-signTest :: [Trnsp] -> Bool
+signTest :: [Trnsp 12] -> Bool
 signTest ts = isEvenPerm (mkPerm ts' :: Perm 12) == (length ts' `mod` 2 == 0)
   where ts' = filter (\(Trnsp x y) -> x `mod` 12 /= y `mod` 12) ts
 
