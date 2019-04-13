@@ -8,7 +8,7 @@ import           RubikGroup
 
 
 irubikAsoc :: IRubik -> IRubik -> IRubik -> Bool
-irubikAsoc x y z = x <> y <> z == x <> y <> z
+irubikAsoc x y z = (x <> y) <> z == x <> y <> z
 
 irubikInv :: IRubik -> Bool
 irubikInv x = x <> invert x == mempty
