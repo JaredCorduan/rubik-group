@@ -454,7 +454,7 @@ orbit (Perm q) x = orbit' x (Set.singleton x)
 
 -- this is far from optimal, but for n=12 it's nbd
 orbits :: forall n. Arity n => Perm n -> Set.Set (Set.Set (Mod Int n))
-orbits p = foldl (\s i -> Set.insert (orbit p i) s) Set.empty $ map toMod [0..(m-1)]
+orbits p = Set.fromList $ map (orbit p . toMod) [0..(m-1)]
   where m = fromIntegral $ natVal (Proxy @n)
 
 isEvenPerm :: Arity n => Perm n -> Bool
