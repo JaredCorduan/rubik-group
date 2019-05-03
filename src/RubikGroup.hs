@@ -240,6 +240,7 @@ module RubikGroup
   , isEvenPerm
   ) where
 
+import           Data.Foldable                 (fold)
 import           Data.Group                    (Group, invert)
 import qualified Data.Map                      as Map
 import           Data.Modular                  (Mod, toMod, unMod)
@@ -436,26 +437,24 @@ mkRubik = Rubik . foldMap moveToIR
     moveToIR L' = invert l
 
 sumTwists :: IRubik -> Cyclic 3
-sumTwists (IRubik c _) = foldl (<>) mempty co
-  where (co, _) = unSemi c
+sumTwists = fold . getCO
 
 sumFlips :: IRubik -> Cyclic 2
-sumFlips (IRubik _ e) = foldl (<>) mempty eo
-  where (eo, _) = unSemi e
+sumFlips = fold . getEO
 
 
 orbit :: forall n. Arity n => Perm n -> Mod Int n -> Set.Set (Mod Int n)
-orbit p x = orbit' p x (Set.singleton x)
+orbit (Perm q) x = orbit' x (Set.singleton x)
   where
-    orbit' (Perm q) i current =
+    orbit' i current =
       if Set.member j current
         then current
-        else orbit' (Perm q) j (Set.insert j current)
+        else orbit' j (Set.insert j current)
       where j = q ! unMod i
 
 -- this is far from optimal, but for n=12 it's nbd
 orbits :: forall n. Arity n => Perm n -> Set.Set (Set.Set (Mod Int n))
-orbits p = foldl (\s i -> Set.insert (orbit p i) s) Set.empty $ map toMod [0..(m-1)]
+orbits p = Set.fromList $ map (orbit p . toMod) [0..(m-1)]
   where m = fromIntegral $ natVal (Proxy @n)
 
 isEvenPerm :: Arity n => Perm n -> Bool
