@@ -240,6 +240,7 @@ module RubikGroup
   , isEvenPerm
   ) where
 
+import           Data.Foldable                 (fold)
 import           Data.Group                    (Group, invert)
 import qualified Data.Map                      as Map
 import           Data.Modular                  (Mod, toMod, unMod)
@@ -436,12 +437,10 @@ mkRubik = Rubik . foldMap moveToIR
     moveToIR L' = invert l
 
 sumTwists :: IRubik -> Cyclic 3
-sumTwists (IRubik c _) = foldl (<>) mempty co
-  where (co, _) = unSemi c
+sumTwists = fold . getCO
 
 sumFlips :: IRubik -> Cyclic 2
-sumFlips (IRubik _ e) = foldl (<>) mempty eo
-  where (eo, _) = unSemi e
+sumFlips = fold . getEO
 
 
 orbit :: forall n. Arity n => Perm n -> Mod Int n -> Set.Set (Mod Int n)
