@@ -445,12 +445,12 @@ sumFlips (IRubik _ e) = foldl (<>) mempty eo
 
 
 orbit :: forall n. Arity n => Perm n -> Mod Int n -> Set.Set (Mod Int n)
-orbit p x = orbit' p x (Set.singleton x)
+orbit (Perm q) x = orbit' x (Set.singleton x)
   where
-    orbit' (Perm q) i current =
+    orbit' i current =
       if Set.member j current
         then current
-        else orbit' (Perm q) j (Set.insert j current)
+        else orbit' j (Set.insert j current)
       where j = q ! unMod i
 
 -- this is far from optimal, but for n=12 it's nbd
