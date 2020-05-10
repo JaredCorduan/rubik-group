@@ -238,6 +238,10 @@ module RubikGroup
   , orbits
 -- | True if the permutation is even
   , isEvenPerm
+-- | Finite cycle group
+  , Cyclic (..)
+-- | Apply a permutation to one elemet in its domain
+  , permuteOne
   ) where
 
 import           Data.Foldable                 (fold)
@@ -295,6 +299,12 @@ instance Arity n => Monoid (Perm n) where
 
 permToMap :: forall n. Arity n => Perm n -> Map.Map (Mod Int n) Int
 permToMap (Perm p) = Map.fromList $ DVF.toList $ imap (\i x -> (x, i)) p
+
+permuteOne :: forall n. Arity n => Perm n -> Mod Int n -> Maybe (Mod Int n)
+permuteOne (Perm p) i =
+  if unMod i < fromIntegral (natVal (Proxy @n))
+    then Just $ p ! unMod i
+    else Nothing
 
 instance Arity n => Group (Perm n) where
   invert p = Perm $ DVF.map get (generate toMod)
@@ -472,7 +482,7 @@ instance Arity n => Arbitrary (Perm n) where
   arbitrary = mkPerm <$> arbitrary
 
 instance KnownNat m => Arbitrary (Cyclic m) where
-  arbitrary = (Cyclic . toMod) <$> arbitrary
+  arbitrary = Cyclic . toMod <$> arbitrary
 
 instance (Arity n, KnownNat m) => Arbitrary (Semi (VecList n (Cyclic m)) (Perm n)) where
   arbitrary = do
