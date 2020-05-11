@@ -68,20 +68,20 @@ reorientEdges =
     [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0] []
 
 
-illegalLaws :: TestTree
-illegalLaws = testGroup "Illegal Cube - Group Laws"
-  [ testProperty "IRubik associative" irubikAsoc
-  , testProperty "IRubik inverses" irubikInv
-  , testProperty "IRubik identity left" irubikIdl
-  , testProperty "IRubik identity right" irubikIdr
+illegalLaws :: Int -> TestTree
+illegalLaws n = testGroup "Illegal Cube - Group Laws"
+  [ testProperty "IRubik associative"    $ withMaxSuccess n irubikAsoc
+  , testProperty "IRubik inverses"       $ withMaxSuccess n irubikInv
+  , testProperty "IRubik identity left"  $ withMaxSuccess n irubikIdl
+  , testProperty "IRubik identity right" $ withMaxSuccess n irubikIdr
   ]
 
-legalProps :: TestTree
-legalProps = testGroup "Legal Cube - Properties"
-  [ testProperty "Conservation of Twists" conservationOfTwists
-  , testProperty "Conservation of Flips" conservationOfFlips
-  , testProperty "Equal Parity" equalParity
-  , testProperty "Correctness of isEvenPerm" signTest
+legalProps :: Int -> TestTree
+legalProps n = testGroup "Legal Cube - Properties"
+  [ testProperty "Conservation of Twists"    $ withMaxSuccess n conservationOfTwists
+  , testProperty "Conservation of Flips"     $ withMaxSuccess n conservationOfFlips
+  , testProperty "Equal Parity"              $ withMaxSuccess n equalParity
+  , testProperty "Correctness of isEvenPerm" $ withMaxSuccess n signTest
   ]
 
 exampleCombos :: TestTree
@@ -94,7 +94,7 @@ exampleCombos = testGroup "Examples - Common Algos"
   ]
 
 rubikTests :: TestTree
-rubikTests = testGroup "Rubik's Cube Algebra" [illegalLaws, legalProps, exampleCombos]
+rubikTests = testGroup "Rubik's Cube Algebra" [illegalLaws 10000, legalProps 10000, exampleCombos]
 
 main :: IO ()
 main = defaultMain rubikTests
