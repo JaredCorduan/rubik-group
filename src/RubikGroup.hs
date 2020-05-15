@@ -130,50 +130,85 @@ module RubikGroup
 --
 -- label the corners:
 --
--- - 0 - RWB
--- - 1 - GWR
--- - 2 - OWG
--- - 3 - BWO
--- - 4 - RYB
--- - 5 - GYR
--- - 6 - OYG
--- - 7 - BYO
+-- +-+---+
+-- |0|RWB|
+-- +-+---+
+-- |1|GWR|
+-- +-+---+
+-- |2|OWG|
+-- +-+---+
+-- |3|BWO|
+-- +-+---+
+-- |4|RYB|
+-- +-+---+
+-- |5|GYR|
+-- +-+---+
+-- |6|OYG|
+-- +-+---+
+-- |7|BYO|
+-- +-+---+
 --
 -- label the edges:
 --
--- -  0 - RW
--- -  1 - GW
--- -  2 - OW
--- -  3 - BW
--- -  4 - RB
--- -  5 - GR
--- -  6 - OG
--- -  7 - BO
--- -  8 - RY
--- -  9 - GY
--- - 10 - OY
--- - 11 - BY
+-- +--+--+
+-- | 0|RW|
+-- +--+--+
+-- | 1|GW|
+-- +--+--+
+-- | 2|OW|
+-- +--+--+
+-- | 3|BW|
+-- +--+--+
+-- | 4|RB|
+-- +--+--+
+-- | 5|GR|
+-- +--+--+
+-- | 6|OG|
+-- +--+--+
+-- | 7|BO|
+-- +--+--+
+-- | 8|RY|
+-- +--+--+
+-- | 9|GY|
+-- +--+--+
+-- |10|OY|
+-- +--+--+
+-- |11|BY|
+-- +--+--+
 --
--- Orient the corners:
--- Mark each white and yellow square on the corners with a +
+-- Oietth corners:
+-- Mrkechwhite and yellow square on the corners with a +
 -- The orientation of a corner is the number of clockwise
 -- rotations needed to get the plus sign oriented as in solved state.
 --
 -- Orient the edges:
 -- Mark one square on each edge as follows:
 --
--- - rw -> w
--- - gw -> g
--- - ow -> o
--- - bw -> w
--- - rb -> r
--- - gr -> g
--- - og -> o
--- - bo -> b
--- - ry -> r
--- - gy -> y
--- - oy -> y
--- - by -> b
+-- +--+-+
+-- |rw|w|
+-- +--+-+
+-- |gw|g|
+-- +--+-+
+-- |ow|o|
+-- +--+-+
+-- |bw|w|
+-- +--+-+
+-- |rb|r|
+-- +--+-+
+-- |gr|g|
+-- +--+-+
+-- |og|o|
+-- +--+-+
+-- |bo|b|
+-- +--+-+
+-- |ry|r|
+-- +--+-+
+-- |gy|y|
+-- +--+-+
+-- |oy|y|
+-- +--+-+
+-- |by|b|
+-- +--+-+
 --
 -- The orientation of an edge is 0 if the plus matches the solved state and 1 otherwise.
   , Move(..)
